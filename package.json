@@ -1,0 +1,6 @@
+{
+    "scripts": {
+        "set-project": "gcloud config set project sp24-41200-pbhenson-globaljags",
+        "deploy": "gcloud functions deploy weather_etl --runtime nodejs18 --trigger-event google.storage.object.finalize --entry-point readObservation --trigger-resource sp34-cit424-pbhenson-weather-etl"
+    }
+}
