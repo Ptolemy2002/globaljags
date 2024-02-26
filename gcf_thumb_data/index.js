@@ -74,7 +74,7 @@ module.exports.entry = async function(file, context) {
         const firestoreObj = {
             lat: gpsData.lat,
             lon: gpsData.lon,
-            thumbURL: thumbBucket.file(finalName).publicUrl(),
+            thumbURL: thumbBucket.file(`thumb@64_${finalName}`).publicUrl(),
             finalURL: finalBucket.file(finalName).publicUrl()
         };
         const collectionRef = firestore.collection("images");
