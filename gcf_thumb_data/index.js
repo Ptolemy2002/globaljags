@@ -45,25 +45,21 @@ module.exports.entry = async function(file, context) {
 
         const thumbPath = await writeThumbnail(tempFilePath, path.join(workingDir, `thumb@64_${finalName}`));
         await thumbBucket.upload(thumbPath);
-
-        // write details to firestore
-        const gpsData = getGPSCoordinates(await readExifData(tempFilePath));
-        const firestoreObj = {
-            lat: gpsData.lat,
-            lon: gpsData.lon,
-            thumbURL: thumbBucket.file(finalName).publicUrl(),
-            finalURL: finalBucket.file(finalName).publicUrl()
-        };
-
-        const collectionRef = firestore.collection("images");
-        const documentRef = await collectionRef.add(firestoreObj);
-        console.log("Created Firestore Document: " + documentRef.id);
     } catch(e) {
         console.log("Error uploading final image or thumbnail!");
         console.error(e);
-        return;
     }
-    // This block will run after the try block, even if something is returned.
+
+    // get coordinates
+    let gpsData;
+    try {
+        gpsData = getGPSCoordinates(await getExif(localFile));
+    } catch(e) {
+        console.log("Error reading GPS Data!");
+        console.error(e);
+        return;
+    } 
+    // Finally will always run after the try or catch block, even if the function returns.
     finally {
         // Delete the temp working directory and its files from the GCF's VM
         await fs.remove(workingDir);
@@ -72,6 +68,25 @@ module.exports.entry = async function(file, context) {
         await srcBucket.file(file.name).delete();
         console.log(`Deleted the uploaded file: ${file.name}`);
     }
+
+    // write detail to FireStore
+    try {
+        const firestoreObj = {
+            lat: gpsData.lat,
+            lon: gpsData.lon,
+            thumbURL: thumbBucket.file(finalName).publicUrl(),
+            finalURL: finalBucket.file(finalName).publicUrl()
+        };
+        const collectionRef = firestore.collection("images");
+        const documentRef = await collectionRef.add(firestoreObj);
+
+        console.log("Created Firestore Document: " + documentRef.id);
+    } catch(e) {
+        console.log("Error Adding Firestore Document!");
+        console.error(e);
+        return;
+    }
+    
 }
 
 function reportVersion() {
