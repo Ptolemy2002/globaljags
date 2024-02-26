@@ -53,7 +53,7 @@ module.exports.entry = async function(file, context) {
     // get coordinates
     let gpsData;
     try {
-        gpsData = getGPSCoordinates(await getExif(localFile));
+        gpsData = getGPSCoordinates(await readExifData(tempFilePath));
     } catch(e) {
         console.log("Error reading GPS Data!");
         console.error(e);
