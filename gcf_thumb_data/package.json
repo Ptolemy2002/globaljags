@@ -1,0 +1,23 @@
+{
+    "name": "gcf_thumb_data",
+    "version": "1.0.0",
+    "description": "A Google Cloud Function that reads images, generates thumbnails, and writes EXIF data to Firestore",
+    "main": "index.js",
+    "scripts": {
+        "set-project": "gcloud config set project sp24-41200-pbhenson-globaljags",
+        "deploy": "gcloud functions deploy thumb_data --runtime nodejs18 --trigger-event google.storage.object.finalize --entry-point entry --trigger-resource sp24-41200-pbhenson-gj-uploads",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Ptolemy Henson",
+    "license": "ISC",
+    "dependencies": {
+        "@google-cloud/firestore": "^6.8.0",
+        "@google-cloud/storage": "^6.12.0",
+        "exif-async": "^1.0.6",
+        "fs-extra": "^11.2.0",
+        "os": "^0.1.2",
+        "parse-dms": "^0.0.5",
+        "path": "^0.12.7",
+        "sharp": "^0.31.3"
+    }
+}
