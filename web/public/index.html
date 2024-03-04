@@ -1,91 +1,122 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>GlobalJags</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <link rel="stylesheet" type="text/css" href="./css/style.css" />
-    <script src="./js/index.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-  
-  </head>
-  <body>
-    <div class="container h-100">
-      <div class="row h-100">
-      <div class="col col-md-4">
-        <div>
-          <img src="./images/globaljags_logo.png" class="img-fluid mx-auto d-block" alt="GlobalJags logo"/>
-        </div>
-        <div id="form">
-          <form method="post" action="upload" enctype="multipart/form-data">
-            <div class="form-group">
-              <label for="file">Select a file to upload</label>
-              <input type="file" class="form-control" name="file" />
-              <small id="fileHelp" class="form-text text-muted">(Use the sample images provided.)</small>
+    <head>
+        <title>GlobalJags</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+        <link rel="stylesheet" type="text/css" href="./css/style.css" />
+        <script src="./js/index.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container h-100">
+            <div class="row h-100">
+            <div class="col col-md-4">
+                <div>
+                    <img src="./images/globaljags_logo.png" class="img-fluid mx-auto d-block" alt="GlobalJags logo"/>
+                </div>
+                <div id="form">
+                    <form method="post" action="upload" enctype="multipart/form-data">
+                      <div class="form-group">
+                        <label for="file">Select a file to upload</label>
+                        <input type="file" class="form-control" name="file" />
+                        <small id="fileHelp" class="form-text text-muted">(Use the sample images provided.)</small>
+                      </div>
+                      <input class="btn btn-primary" type="submit" />
+                    </form>
+                </div>
             </div>
-            <input class="btn btn-primary" type="submit" />
-          </form>
+            <div class="col col-md-8 h-100">
+                <div id="map"></div>
+            </div>
         </div>
-      </div>
-      <div class="col col-md-8 h-100">
-        <div id="map"></div>
-      </div>
-    </div>
-    </div>
-    
-    <!--- Add the API key for your Google Map -->
-    <script defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=REPLACE_WITH_YOUR_KEY&callback=initMap"></script>
+        </div>
+      
+        <!--- Add the API key for your Google Map -->
+        <script defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwG1zXld6lqfy9TetG-37uVIbcfIVfHco&callback=initMap"></script>
 
-    <!--- Add the JavaScript that connects to Firebase & Firestore -->
-    <script type="module">
-      // Import the Firebase SDK
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        <!--- Add the JavaScript that connects to Firebase & Firestore -->
+        <script type="module">
+            // Import the Firebase SDK
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 
-      // Import the Firebase Firestore SDK
-      import { getFirestore, doc, query, collection, onSnapshot } from  'https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js';
+            // Import the Firebase Firestore SDK
+            import { getFirestore, doc, query, collection, onSnapshot } from  'https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js';
 
-      // Paste your web app's Firebase configuration
+            // Paste your web app's Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyCwG1zXld6lqfy9TetG-37uVIbcfIVfHco",
+                authDomain: "sp24-41200-pbhenson-globaljags.firebaseapp.com",
+                projectId: "sp24-41200-pbhenson-globaljags",
+                storageBucket: "sp24-41200-pbhenson-globaljags.appspot.com",
+                messagingSenderId: "990523015366",
+                appId: "1:990523015366:web:0f620745467252cbe7d7c7"
+            };
 
-      // Initialize Firebase
+            // Initialize Firebase
+            console.log("Firebase Initialized!");
+            const fbapp = initializeApp(firebaseConfig);
 
-      // Access the Firestore database 
+            // Access the Firestore database
+            const db = getFirestore(fbapp);
 
-      // Create a query that selects all documents in the "photos" collection
+            // Create a query that selects all documents in the "photos" collection
+            const photoQuery = query(collection(db, "images"));
 
-      // Create an array that will hold all the markers on the map
+            // Create an array that will hold all the markers on the map
+            let markersArray = [];
 
-      // Create a listener function that watches a snapshot based on a query
-      const listener = onSnapshot(photoQuery, (querySnapshot) => {
+            // Create a listener function that watches a snapshot based on a query
+            const listener = onSnapshot(photoQuery, (querySnapshot) => {
+                // Set the boundaries of the map
+                const bounds = new google.maps.LatLngBounds();
 
-        // Set the boundaries of the map
-        const bounds = new google.maps.LatLngBounds();
+                // Clear existing markers from the map
+                markersArray.forEach((marker) => {
+                    console.log("Deleting marker");
+                    marker.setMap(null);
+                });
 
-        // Clear existing markers from the map
+                // Check to see if there are any photos in the snapshot;
+                // If not, center the map on IUPUI
+                if (querySnapshot.empty) {
+                    const iupui = new google.maps.LatLng(39.774, -86.179);
+                    bounds.extend(iupui);
+                }
 
-        // Check to see if there are any photos in the snapshot;
-        // If not, center the map on IUPUI
+                // Loop through the documents found in the snapshot
+                querySnapshot.forEach((doc) => {
+                    const {lat: photoLat, lon: photoLon, thumbURL} = doc.data();
 
-        // Loop through the documents found in the snapshot
-        querySnapshot.forEach((doc) => {
+                    // Create a new LatLng object with the photo’s lat/lon
+                    const photoLatLng = {lat: photoLat, lng: photoLon};
 
-          // Create a new LatLng object with the photo’s lat/lon
+                    // Extend the map bounds to encompass this point
+                    const newLocation = new google.maps.LatLng(photoLat, photoLon);
+                    bounds.extend(newLocation);
 
-          // Extend the map bounds to encompass this point
+                    // Place the marker on the map using the thumbnail as the icon
+                    const marker = new google.maps.Marker({
+                        position: photoLatLng,
+                        map,
+                        icon: thumbURL
+                    });
 
-          // Place the marker on the map using the thumbnail as the icon
-
-          // Add the new marker to the array of markers
-
-        });
-          
-        // When all of the markers have been added to the map, move and recenter
-
-      });
-    </script>
-    
-    <!--- Import Bootstrap JavaScript --->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
-  
-  </body>
+                    // Add the new marker to the array of markers
+                    markersArray.push(marker);
+                });
+                  
+                // When all of the markers have been added to the map, move and recenter
+                map.fitBounds(bounds);
+                map.panToBounds(bounds);
+                if (map.zoom > 15) {
+                    map.setZoom(15);
+                }
+            });
+        </script>
+        
+        <!--- Import Bootstrap JavaScript --->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    </body>
 </html>
